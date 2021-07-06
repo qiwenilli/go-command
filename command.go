@@ -11,7 +11,6 @@ import (
 	"runtime"
 	"strings"
 	"syscall"
-	"time"
 )
 
 type Session struct {
@@ -20,14 +19,12 @@ type Session struct {
 	dir        string
 	pid        chan int
 	logWriter  io.Writer
-	timeout    time.Duration
 }
 
 func NewSession() *Session {
 
 	return &Session{
-		timeout: time.Hour,
-		pid:     make(chan int, 1),
+		pid: make(chan int, 1),
 	}
 }
 
@@ -96,11 +93,8 @@ func (s *Session) Run(ctx context.Context, command string, disableStybel bool) (
 	done := make(chan struct{}, 1)
 	go func() {
 		select {
-		case <-time.After(s.timeout):
-			log.Printf("%s is timeout", cmdSlice)
-			cmd.Process.Kill()
 		case <-ctx.Done():
-			log.Printf("%s is canceled", cmdSlice)
+			log.Printf("%s , err = %v", cmd.String(), ctx.Err())
 			cmd.Process.Kill()
 		case <-done:
 		}
@@ -118,8 +112,4 @@ func (s *Session) Run(ctx context.Context, command string, disableStybel bool) (
 
 func Kill(pid int) error {
 	return syscall.Kill(pid, syscall.SIGKILL)
-}
-
-func (s *Session) Timeout(timeout time.Duration) {
-	s.timeout = timeout
 }

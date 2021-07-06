@@ -1,3 +1,3 @@
-module github.com/command
+module github.com/qiwenilli/go-command
 
 go 1.16
